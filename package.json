@@ -1,0 +1,13 @@
+{
+    "name": "chatta",
+    "version": "0.0.1",
+    "description": "Chat app using socket.io",
+    "dependencies": {
+        "body-parser": "^1.19.0",
+        "cors": "^2.8.5",
+        "express": "^4.17.1",
+        "helmet": "^4.6.0",
+        "socket.io": "^4.1.3",
+        "uuid": "^8.3.2"
+    }
+}

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Charlar</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/socket.io/socket.io.js"></script>
+  </head>
+
+  <style>
+    body,
+    html {
+      font-family: "Inter", sans-serif;
+    }
+
+    /* Hide scrollbar for Chrome, Safari and Opera */
+    .messages-list::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* Hide scrollbar for IE, Edge and Firefox */
+    .messages-list {
+      -ms-overflow-style: none;  /* IE and Edge */
+      scrollbar-width: none;  /* Firefox */
+    }
+  </style>
+
+  <body
+    class="flex flex-col p-6 items-center justify-center h-screen bg-slate-800 text-slate-300"
+  >
+    <main
+      class="h-full w-96 rounded-3xl bg-black/10 backdrop-filter backdrop-blur rounded-3xl overflow-hidden"
+    >
+      <div
+        class="relative flex flex-col h-full space-y-6 p-3 w-full overflow-y-auto scroll-smooth messages-list"
+      >
+        <ul id="messages" class="flex-1 flex flex-col space-y-6 justify-end">
+          <li class="text-center bg-slate-700/50 px-4 py-2 rounded-xl">
+            <p class="text-sm">This is the beginning of your chat</p>
+          </li>
+        </ul>
+
+        <form
+          id="chatForm"
+          action=""
+          class="sticky bottom-0 left-0 flex flex-row space-x-2 p-2 mt-6 rounded-xl bg-slate-700 ring-4 ring-blue-500/50 backdrop-filter backdrop-blur focus-within:ring-blue-500"
+        >
+          <input
+            id="chatBox"
+            class="flex-1 border-none outline-none bg-transparent"
+            type="text"
+            placeholder="Hello World!"
+          />
+
+          <button
+            type="submit"
+            class="p-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 text-white translation duration-500 ease-in-out hover:scale-105"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="w-4 h-4"
+            >
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+          </button>
+        </form>
+      </div>
+    </main>
+  </body>
+
+  <script>
+    const socket = io();
+    const userId = `user_${randomId()}`;
+    const roomId = getRoomId();
+
+
+    socket.on("connect", () => {
+      console.log('You are online');
+      socket.emit('join-room', {
+        roomId
+      })
+    });
+
+    socket.on("disconnect", () => {
+      console.log('You are offline');
+    });
+
+    const messagesListEl = document.getElementById("messages");
+    const chatFormEl = document.getElementById("chatForm");
+    const chatBoxEl = document.getElementById("chatBox");
+
+    chatFormEl.addEventListener("submit", (event) => {
+      event.preventDefault();
+      if (chatBoxEl.value) {
+        postNewMsg(chatBoxEl.value);
+        chatBoxEl.value = "";
+      }
+    });
+
+    socket.on("new-message", (msg) => {
+      let listEl = document.createElement("li");
+      listEl.classList.add("w-full");
+      listEl.id = msg.messageId;
+      const divEl = document.createElement("div");
+      divEl.classList.add(
+        userId === msg.userId ? "ml-auto" : "m-0",
+        userId === msg.userId ? "bg-cyan-800" : "bg-indigo-800",
+        "px-4",
+        "py-2",
+        "rounded-xl",
+        "w-fit"
+      );
+      listEl.appendChild(divEl);
+      const messageEl = document.createElement("p");
+      messageEl.innerText = msg.message;
+      const timestampEl = document.createElement("p");
+      timestampEl.classList.add("text-xs", "text-slate-400");
+      const shortTime = new Intl.DateTimeFormat("en", {
+        timeStyle: "short"
+      });
+      timestampEl.innerText = shortTime.format(new Date(msg.timestamp));
+      divEl.appendChild(messageEl);
+      divEl.appendChild(timestampEl);
+      messagesListEl.append(listEl);
+      listEl.scrollIntoView()
+    });
+
+    function postNewMsg(msg) {
+      const timestamp = new Date().getTime();
+
+      const apiPayload = JSON.stringify({
+        userId,
+        roomId,
+        timestamp: timestamp,
+        message: msg,
+      });
+      const apiUrl = `${window.location.origin}/api/new-message`;
+
+      fetch(apiUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: apiPayload,
+      })
+        .then((res) => res.json)
+        .then((data) => {
+          console.log("Success");
+        });
+    }
+
+    function getRoomId() {
+      const currentUrl = window.location.href;
+      return  currentUrl.split("/").pop().replace('?', '');
+    }
+
+    function randomId() {
+      const uint32 = window.crypto.getRandomValues(new Uint32Array(1))[0];
+      return uint32.toString(16);
+    }
+  </script>
+</html>

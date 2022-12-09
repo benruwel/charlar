@@ -1,121 +1,70 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
-    <title>Socket.IO chat</title>
-    <style>
-      body {
-        margin: 0;
-        padding-bottom: 3rem;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
-      }
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Charlar</title>
 
-      #form {
-        background: rgba(0, 0, 0, 0.15);
-        padding: 0.25rem;
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        display: flex;
-        height: 3rem;
-        box-sizing: border-box;
-        backdrop-filter: blur(10px);
-      }
-      #input {
-        border: none;
-        padding: 0 1rem;
-        flex-grow: 1;
-        border-radius: 2rem;
-        margin: 0.25rem;
-      }
-      #input:focus {
-        outline: none;
-      }
-      #form > button {
-        background: #333;
-        border: none;
-        padding: 0 1rem;
-        margin: 0.25rem;
-        border-radius: 3px;
-        outline: none;
-        color: #fff;
-      }
-
-      #messages {
-        list-style-type: none;
-        margin: 0;
-        padding: 0;
-      }
-      #messages > li {
-        padding: 0.5rem 1rem;
-      }
-      #messages > li:nth-child(odd) {
-        background: #efefef;
-      }
-    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
   </head>
 
-  <body>
-    <ul id="messages"></ul>
-    <form id="form" action="">
-      <input id="input" autocomplete="off" /><button>Send</button>
-    </form>
+  <style>
+    body,
+    html {
+      font-family: "Inter", sans-serif;
+    }
+  </style>
+  <body
+    class="flex flex-col w-full h-full items-center justify-center min-h-screen w-full bg-slate-800 text-slate-300"
+  >
+    <main
+      class="relative flex flex-row space-x-4 p-12 bg-black/10 backdrop-filter backdrop-blur rounded-3xl"
+    >
+      <div class="flex flex-col space-y-6 items-center">
+        <h1 class="text-6xl tracking-wider font-black text-slate-100">
+          Welcome to Charlar
+        </h1>
 
-    <script src="/socket.io/socket.io.js"></script>
+        <h3 class="font-medium">This is not a gimmick, its a chat app</h3>
+
+        <button
+          id="create-room"
+          class="px-6 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-indigo-500 text-white translation duration-500 ease-in-out hover:scale-105"
+        >
+          Create Room
+        </button>
+      </div>
+      <div class="absolute top-0 -right-64">
+        <div class="w-96">
+          <img
+            src="https://res.cloudinary.com/benruwel-webpages-2020/image/upload/v1670505770/portfolio/charlar_xs8p1k.webp"
+            alt="Running Charlar"
+            class="object-center object-cover"
+          />
+        </div>
+      </div>
+    </main>
 
     <script>
-      let socket = io();
-      let messages = document.getElementById("messages");
-      let form = document.getElementById("form");
-      let input = document.getElementById("input");
+      const createBtn = document.getElementById("create-room");
 
-      const postNewMsg = (msg) => {
-        const apiPayload = JSON.stringify({
-          message: msg,
-        });
-        fetch("http://localhost:3000/api/new-message", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: apiPayload,
-        })
-          .then((res) => res.json)
-          .then((data) => {
-            console.log("Success: ", data);
-          });
-      };
-
-      const emitNewMessage = (msg) => {
-        const timestamp = new Date().getTime();
-        const messageId = "1ff7e35a-ef6e-11eb-9a03-0242ac130003";
-        const messageObj = {
-          timestamp: timestamp.toString(),
-          messageId: messageId,
-          message: msg,
-        };
-        console.log(messageObj);
-        socket.emit("new-message", messageObj);
-      };
-
-      form.addEventListener("submit", (event) => {
-        event.preventDefault();
-        if (input.value) {
-          //   console.log(input.value);
-          postNewMsg(input.value);
-          // emitNewMessage(input.value);
-          input.value = "";
-        }
+      createBtn.addEventListener("click", () => {
+        const currentUrl = window.location.href;
+        const roomUrl = `${currentUrl}room/${randomId()}`;
+        window.location.href = roomUrl;
       });
 
-      socket.on("new-message", (msg) => {
-        let item = document.createElement("li");
-        console.log(msg);
-        item.textContent = msg.message;
-        messages.appendChild(item);
-        window.scrollTo(0, document.body.scrollHeight);
-      });
+      function randomId() {
+        const uint32 = window.crypto.getRandomValues(new Uint32Array(1))[0];
+        return uint32.toString(16);
+      }
     </script>
   </body>
 </html>

@@ -37,7 +37,7 @@ app.use(express.static("pages"));
 app.use(cors());
 
 app.get("/", (req, res) => {
-  res.sendFile(__dirname + "/pages/home.html");
+  res.sendFile(__dirname + "/pages/index.html");
 });
 
 app.get("/room/:roomId", (req, res) => {

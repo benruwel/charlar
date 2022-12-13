@@ -10,8 +10,8 @@
     />
 
 
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
-    <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" type="image/x-icon" href="./favicon.ico">
+    <link rel="shortcut icon" type="image/x-icon" href="./favicon.ico">
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -51,15 +51,22 @@
         class="relative flex flex-col h-full space-y-6 p-3 w-full overflow-y-auto scroll-smooth messages-list"
       >
         <ul id="messages" class="flex-1 flex flex-col space-y-6 justify-end">
-          <li class="text-center bg-slate-700/50 px-4 py-2 rounded-xl">
-            <p class="text-sm">This is the beginning of your chat</p>
+          <li class="flex flex-col space-y-2 items-center justify-center text-center bg-slate-700/50 px-4 py-2 rounded-xl">
+            <p class="text-sm">This is the beginning of your chat.</p>
+            <p class="text-sm">Share this link with your friend and start chatting!</p>
+            <button id="share-link" class="flex flex-row items-center space-x-2 px-6 py-2 text-xs bg-slate-700 text-white rounded-lg transform duration-500 ease-in-out hover:scale-105 hover:text-blue-500">
+              <span id="share-link-content">Copy Link</span>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184" />
+              </svg>
+            </button>
           </li>
         </ul>
 
         <form
           id="chatForm"
           action=""
-          class="sticky bottom-0 left-0 flex flex-row space-x-2 p-2 mt-6 rounded-xl bg-slate-700 ring-4 ring-blue-500/50 backdrop-filter backdrop-blur focus-within:ring-blue-500"
+          class="sticky bottom-0 left-0 flex flex-row space-x-2 p-2 mt-6 rounded-xl bg-slate-700 ring-4 ring-blue-400/50 backdrop-filter backdrop-blur focus-within:ring-blue-500"
         >
           <input
             id="chatBox"
@@ -111,6 +118,16 @@
     const messagesListEl = document.getElementById("messages");
     const chatFormEl = document.getElementById("chatForm");
     const chatBoxEl = document.getElementById("chatBox");
+    const shareLinkBtn = document.getElementById("share-link");
+
+    shareLinkBtn.addEventListener('click', () => {
+      const shareLinkContentEl = document.getElementById("share-link-content");
+      navigator.clipboard.writeText(window.location.href);
+      shareLinkContentEl.innerText = "Copied!";
+      setTimeout(() => {
+          shareLinkContentEl.innerText = "Copy Link";
+      }, 2000);
+    });
 
     chatFormEl.addEventListener("submit", (event) => {
       event.preventDefault();
@@ -121,9 +138,10 @@
     });
 
     socket.on("new-message", (msg) => {
-      let listEl = document.createElement("li");
+      const listEl = document.createElement("li");
       listEl.classList.add("w-full");
       listEl.id = msg.messageId;
+
       const divEl = document.createElement("div");
       divEl.classList.add(
         userId === msg.userId ? "ml-auto" : "m-0",
@@ -134,6 +152,7 @@
         "w-fit"
       );
       listEl.appendChild(divEl);
+
       const messageEl = document.createElement("p");
       messageEl.innerText = msg.message;
       const timestampEl = document.createElement("p");
@@ -142,9 +161,11 @@
         timeStyle: "short"
       });
       timestampEl.innerText = shortTime.format(new Date(msg.timestamp));
+
       divEl.appendChild(messageEl);
       divEl.appendChild(timestampEl);
       messagesListEl.append(listEl);
+
       listEl.scrollIntoView()
     });
 
